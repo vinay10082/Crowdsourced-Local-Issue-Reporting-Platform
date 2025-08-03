@@ -1,6 +1,7 @@
-# High-Level Design (HLD)
+# Crowdsourced Local Issue Reporting Platform
 
-## Crowdsourced Local Issue Reporting Platform
+## High-Level Design (HLD)
+
 ---
 ### 1. Overview
 
@@ -67,8 +68,131 @@ G[Authorities (Web)] -- REST API --> B
 - External civic data consumers via open data APIs
 
 ---
+
 ### 8. Deployment
 
 - Dockerized Spring Boot app
 - Cloud-hosted database and file storage
 - CI/CD pipeline for automated testing and deployment
+
+---
+
+## Low-Level Design (LLD)
+
+---
+
+### 1. Entities & Database Schema
+
+#### User
+
+- id (UUID, PK)  
+- username (String, unique)  
+- password (String, hashed)  
+- email (String, unique)  
+- role (Enum: CITIZEN, AUTHORITY)  
+- created_at (Timestamp)  
+
+#### Issue
+
+- id (UUID, PK)  
+- title (String)  
+- description (Text)  
+- location (GeoPoint or string)  
+- status (Enum: REPORTED, IN_PROGRESS, RESOLVED, REJECTED)  
+- created_by (FK to User)  
+- created_at (Timestamp)  
+- updated_at (Timestamp)  
+
+#### IssueImage
+
+- id (UUID, PK)  
+- issue_id (FK to Issue)  
+- image_url (String)  
+- uploaded_at (Timestamp)  
+
+#### Comment
+
+- id (UUID, PK)  
+- issue_id (FK to Issue)  
+- user_id (FK to User)  
+- content (Text)  
+- created_at (Timestamp)  
+
+---
+
+### 2. Spring Boot Modules & Packages
+
+- controller  
+- service  
+- repository  
+- security  
+- dto  
+- exception  
+- config  
+
+---
+
+### 3. Key REST Endpoints
+
+#### Authentication
+
+- `POST /api/auth/register`  
+- `POST /api/auth/login`  
+
+#### Issue Management
+
+- `POST /api/issues`  
+- `GET /api/issues`  
+- `GET /api/issues/{id}`  
+- `PUT /api/issues/{id}/status`  
+- `POST /api/issues/{id}/images`  
+- `GET /api/issues/{id}/images`  
+
+#### Comments
+
+- `POST /api/issues/{id}/comments`  
+- `GET /api/issues/{id}/comments`  
+
+#### Analytics
+
+- `GET /api/analytics/summary`  
+
+#### Open Data
+
+- `GET /api/open/issues`  
+
+---
+
+### 4. Security Design
+
+- JWT authentication for all endpoints except open data  
+- Role-based authorization  
+
+---
+
+### 5. File/Image Handling
+
+- Upload via `/api/issues/{id}/images`  
+- Store metadata in DB, files in storage  
+- Serve images via secure URLs  
+
+---
+
+### 6. Analytics Module
+
+- Aggregate data using custom queries or projections  
+- Endpoints for trends, resolution time, status distribution  
+
+---
+
+### 7. Exception Handling
+
+- Global exception handler  
+- Standardized error response  
+
+---
+
+### 8. Testing
+
+- Unit tests for services/controllers  
+- Integration tests for API endpoints  
